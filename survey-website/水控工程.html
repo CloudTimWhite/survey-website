@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时间调查问卷</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .nav-buttons {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+
+        .nav-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-left: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .time-selector {
+            margin-top: 30px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .time-table {
+            width: max-content;
+            min-width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .time-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 10px;
+            text-align: center;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            min-width: 80px;
+        }
+
+        .time-table th:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 20;
+            min-width: 100px;
+        }
+
+        .time-table td {
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+            min-width: 80px;
+        }
+
+        .time-table td:first-child {
+            position: sticky;
+            left: 0;
+            background: #f8f9fa;
+            font-weight: 600;
+            z-index: 5;
+        }
+
+        .time-table td:hover:not(:first-child) {
+            background: #f8f9ff;
+        }
+
+        .time-slot {
+            padding: 8px 12px;
+            margin: 2px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+            font-size: 0.9rem;
+        }
+
+        .time-slot:hover {
+            border-color: #4facfe;
+            transform: translateY(-1px);
+        }
+
+        .time-slot.selected {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border-color: #4facfe;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #333;
+        }
+
+        .statistics {
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .submissions-list {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .submission-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #4facfe;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .submission-header {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .time-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .time-chip {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+
+        .success-message, .error-message {
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .success-message {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: white;
+        }
+
+        .error-message {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #333;
+        }
+
+        .login-container {
+            max-width: 400px;
+            margin: 50px auto;
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .login-container h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .busy-time-analysis {
+            margin-top: 30px;
+        }
+
+        .analysis-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .analysis-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .analysis-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .occupied-badge {
+            background: #ff9a9e;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .config-warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .config-warning h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .config-warning code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .nav-buttons {
+                position: static;
+                margin-top: 20px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>时间调查问卷</h1>
+            <p>请选择您在10月29日至11月10日期间的忙碌时间</p>
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="showSection('survey')">填写问卷</button>
+                <button class="nav-btn" onclick="showSection('login')">后台管理</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- 配置提示 -->
+            <div id="configWarning" class="config-warning" style="display: none;">
+                <h3>⚠️ 需要配置 Supabase</h3>
+                <p>请在代码中填入您的 Supabase 配置信息：</p>
+                <ol style="margin: 15px 0; padding-left: 20px;">
+                    <li>打开代码编辑器</li>
+                    <li>找到 <code>SUPABASE_URL</code> 和 <code>SUPABASE_KEY</code></li>
+                    <li>替换为您的 Supabase 项目信息</li>
+                </ol>
+            </div>
+
+            <!-- 问卷填写部分 -->
+            <div id="survey" class="section active">
+                <div id="successMessage" class="success-message">
+                    <h3>✅ 提交成功！</h3>
+                    <p>感谢您的参与，您的时间安排已记录。</p>
+                </div>
+
+                <div id="errorMessage" class="error-message"></div>
+
+                <form id="surveyForm">
+                    <div class="form-group">
+                        <label for="studentName">姓名：</label>
+                        <input type="text" id="studentName" name="studentName" required placeholder="请输入您的姓名">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="studentId">学号：</label>
+                        <input type="text" id="studentId" name="studentId" required placeholder="请输入您的学号">
+                    </div>
+
+                    <div class="time-selector">
+                        <label>选择您的忙碌时间段：</label>
+                        <p style="color: #666; margin-bottom: 20px; font-size: 0.9rem;">
+                            ⬅️ 可以左右滑动查看所有日期 | 点击时间段来选择您忙碌的时间，可以选择多个
+                        </p>
+                        <div class="table-container">
+                            <table class="time-table" id="timeTable"></table>
+                        </div>
+                    </div>
+
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button type="button" class="btn btn-secondary" onclick="clearSelection()">清空选择</button>
+                        <button type="submit" class="btn" id="submitBtn">提交问卷</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 登录部分 -->
+            <div id="login" class="section">
+                <div class="login-container">
+                    <h2>后台登录</h2>
+                    <div id="loginError" class="error-message"></div>
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="username">账号：</label>
+                            <input type="text" id="username" name="username" required placeholder="请输入账号">
+                        </div>
+                        <div class="form-group">
+                            <label for="password">密码：</label>
+                            <input type="password" id="password" name="password" required placeholder="请输入密码">
+                        </div>
+                        <div style="text-align: center; margin-top: 30px;">
+                            <button type="submit" class="btn">登录</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 后台管理部分 -->
+            <div id="admin" class="section">
+                <div style="text-align: right; margin-bottom: 20px;">
+                    <button class="btn btn-secondary" onclick="logout()">退出登录</button>
+                </div>
+
+                <h2 style="color: #333; margin-bottom: 30px;">后台统计管理</h2>
+                
+                <div class="statistics">
+                    <div class="stat-card">
+                        <h3 id="totalSubmissions">-</h3>
+                        <p>总提交数</p>
+                    </div>
+                </div>
+
+                <div class="busy-time-analysis">
+                    <h3 style="color: #333; margin-bottom: 20px;">❌ 不可用时间段统计</h3>
+                    <p style="color: #666; margin-bottom: 15px;">以下时间段至少有一人忙碌，不适合安排活动：</p>
+                    <div class="table-container">
+                        <table class="analysis-table">
+                            <thead>
+                                <tr>
+                                    <th>日期</th>
+                                    <th>时间段</th>
+                                    <th>忙碌人数</th>
+                                    <th>状态</th>
+                                </tr>
+                            </thead>
+                            <tbody id="busyTimeBody">
+                                <tr><td colspan="4" class="loading">加载中...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin: 30px 0;">
+                    <button class="btn" onclick="refreshStats()">刷新统计</button>
+                    <button class="btn btn-danger" onclick="clearAllData()">清空所有数据</button>
+                </div>
+
+                <div class="submissions-list">
+                    <h3 style="color: #333; margin-bottom: 20px;">📋 提交详情</h3>
+                    <div id="submissionsList">
+                        <div class="loading">加载中...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        // ========== 重要：在这里填入您的 Supabase 配置 ==========
+        const SUPABASE_URL = 'https://rujmljuengkglpkfhnoe.supabase.co';  // 替换为您的 Supabase URL
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1am1sanVlbmdrZ2xwa2Zobm9lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA2ODYyNDgsImV4cCI6MjA3NjI2MjI0OH0.J5CyFjiW2xtbhWIQxGGz3hVqFROFMTqe2bLMkY4gIrg';  // 替换为您的 Supabase anon key
+        // =====================================================
+
+        // 管理员账号密码
+        const ADMIN_USERNAME = '231200001';
+        const ADMIN_PASSWORD = '231200001';
+        
+        // 初始化 Supabase 客户端
+        let supabase;
+        let isLoggedIn = false;
+        let selectedTimeSlots = [];
+
+        // 检查配置
+        function checkConfig() {
+            if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_KEY === 'YOUR_SUPABASE_ANON_KEY') {
+                document.getElementById('configWarning').style.display = 'block';
+                return false;
+            }
+            return true;
+        }
+
+        // 初始化 Supabase
+        function initSupabase() {
+            if (!checkConfig()) {
+                console.error('请配置 Supabase URL 和 API Key');
+                return false;
+            }
+            
+            try {
+                supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                return true;
+            } catch (error) {
+                console.error('Supabase 初始化失败:', error);
+                showError('数据库连接失败，请检查配置');
+                return false;
+            }
+        }
+
+        // 生成日期范围
+        function generateDateRange() {
+            const dates = [];
+            const startDate = new Date(2024, 9, 29);
+            const endDate = new Date(2024, 10, 10);
+            
+            for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+                dates.push(new Date(d));
+            }
+            return dates;
+        }
+
+        // 生成时间段
+        function generateTimeSlots() {
+            const slots = [];
+            for (let hour = 8; hour <= 22; hour++) {
+                const timeStart = hour.toString().padStart(2, '0') + ':00';
+                const timeEnd = (hour + 1).toString().padStart(2, '0') + ':00';
+                slots.push(`${timeStart}-${timeEnd}`);
+            }
+            return slots;
+        }
+
+        // 生成时间表
+        function generateTimeTable() {
+            const dates = generateDateRange();
+            const timeSlots = generateTimeSlots();
+            const table = document.getElementById('timeTable');
+            
+            let headerHTML = '<tr><th>时间</th>';
+            dates.forEach(date => {
+                const monthDay = `${date.getMonth() + 1}/${date.getDate()}`;
+                const weekday = ['日', '一', '二', '三', '四', '五', '六'][date.getDay()];
+                headerHTML += `<th class="date-header">${monthDay}<br>周${weekday}</th>`;
+            });
+            headerHTML += '</tr>';
+            
+            let bodyHTML = '';
+            timeSlots.forEach(slot => {
+                bodyHTML += `<tr><td>${slot}</td>`;
+                dates.forEach(date => {
+                    const dateStr = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+                    const slotId = `${dateStr}_${slot}`;
+                    bodyHTML += `<td><div class="time-slot" data-slot="${slotId}" onclick="toggleTimeSlot('${slotId}')">${slot.split('-')[0]}</div></td>`;
+                });
+                bodyHTML += '</tr>';
+            });
+            
+            table.innerHTML = headerHTML + bodyHTML;
+        }
+
+        // 切换时间段选择
+        function toggleTimeSlot(slotId) {
+            const slotElement = document.querySelector(`[data-slot="${slotId}"]`);
+            const index = selectedTimeSlots.indexOf(slotId);
+            
+            if (index === -1) {
+                selectedTimeSlots.push(slotId);
+                slotElement.classList.add('selected');
+            } else {
+                selectedTimeSlots.splice(index, 1);
+                slotElement.classList.remove('selected');
+            }
+        }
+
+        // 清空选择
+        function clearSelection() {
+            selectedTimeSlots = [];
+            document.querySelectorAll('.time-slot.selected').forEach(slot => {
+                slot.classList.remove('selected');
+            });
+        }
+
+        // 显示成功消息
+        function showSuccess(message) {
+            const elem = document.getElementById('successMessage');
+            elem.querySelector('p').textContent = message;
+            elem.style.display = 'block';
+            setTimeout(() => {
+                elem.style.display = 'none';
+            }, 3000);
+        }
+
+        // 显示错误消息
+        function showError(message) {
+            const elem = document.getElementById('errorMessage');
+            elem.textContent = message;
+            elem.style.display = 'block';
+            setTimeout(() => {
+                elem.style.display = 'none';
+            }, 5000);
+        }
+
+        // 显示指定部分
+        function showSection(sectionId) {
+            if (sectionId === 'admin' && !isLoggedIn) {
+                sectionId = 'login';
+            }
+            
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('active');
+            });
+            document.getElementById(sectionId).classList.add('active');
+            
+            if (sectionId === 'admin') {
+                refreshStats();
+            }
+        }
+
+        // 登录处理
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+                isLoggedIn = true;
+                document.getElementById('loginError').style.display = 'none';
+                showSection('admin');
+            } else {
+                const errorElem = document.getElementById('loginError');
+                errorElem.textContent = '账号或密码错误！';
+                errorElem.style.display = 'block';
+            }
+        });
+
+        // 退出登录
+        function logout() {
+            isLoggedIn = false;
+            document.getElementById('loginForm').reset();
+            showSection('survey');
+        }
+
+        // 处理表单提交
+        document.getElementById('surveyForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!checkConfig()) {
+                showError('系统未配置，请联系管理员');
+                return;
+            }
+            
+            const studentName = document.getElementById('studentName').value.trim();
+            const studentId = document.getElementById('studentId').value.trim();
+            
+            if (selectedTimeSlots.length === 0) {
+                showError('请至少选择一个时间段！');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '提交中...';
+            
+            try {
+                // 检查是否已存在
+                const { data: existing } = await supabase
+                    .from('survey_responses')
+                    .select('*')
+                    .eq('student_id', studentId)
+                    .single();
+                
+                if (existing) {
+                    const confirmUpdate = confirm('该学号已提交过问卷，是否要更新？');
+                    if (!confirmUpdate) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = '提交问卷';
+                        return;
+                    }
+                    
+                    // 更新现有记录
+                    const { error } = await supabase
+                        .from('survey_responses')
+                        .update({
+                            student_name: studentName,
+                            time_slots: selectedTimeSlots
+                        })
+                        .eq('student_id', studentId);
+                    
+                    if (error) throw error;
+                } else {
+                    // 插入新记录
+                    const { error } = await supabase
+                        .from('survey_responses')
+                        .insert([{
+                            student_name: studentName,
+                            student_id: studentId,
+                            time_slots: selectedTimeSlots
+                        }]);
+                    
+                    if (error) throw error;
+                }
+                
+                showSuccess('提交成功！感谢您的参与。');
+                document.getElementById('surveyForm').reset();
+                clearSelection();
+                
+            } catch (error) {
+                console.error('提交失败:', error);
+                showError('提交失败：' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '提交问卷';
+            }
+        });
+
+        // 刷新统计
+        async function refreshStats() {
+            if (!checkConfig()) return;
+            
+            try {
+                const { data, error } = await supabase
+                    .from('survey_responses')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                document.getElementById('totalSubmissions').textContent = data.length;
+                displaySubmissions(data);
+                displayBusyTimeAnalysis(data);
+                
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                showError('加载数据失败：' + error.message);
+            }
+        }
+
+        // 统计忙碌时间
+        function analyzeBusyTimes(data) {
+            const busyTimeCount = {};
+            
+            data.forEach(submission => {
+                submission.time_slots.forEach(slot => {
+                    if (!busyTimeCount[slot]) {
+                        busyTimeCount[slot] = {
+                            count: 0,
+                            students: []
+                        };
+                    }
+                    busyTimeCount[slot].count++;
+                    busyTimeCount[slot].students.push(submission.student_name);
+                });
+            });
+            
+            return busyTimeCount;
+        }
+
+        // 显示忙碌时间统计
+        function displayBusyTimeAnalysis(data) {
+            const busyTimes = analyzeBusyTimes(data);
+            const tbody = document.getElementById('busyTimeBody');
+            
+            if (Object.keys(busyTimes).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #666;">暂无数据</td></tr>';
+                return;
+            }
+            
+            const sortedSlots = Object.keys(busyTimes).sort();
+            
+            let html = '';
+            sortedSlots.forEach(slot => {
+                const [date, time] = slot.split('_');
+                const dateObj = new Date(date);
+                const monthDay = `${dateObj.getMonth() + 1}月${dateObj.getDate()}日`;
+                const weekday = ['日', '一', '二', '三', '四', '五', '六'][dateObj.getDay()];
+                
+                html += `
+                    <tr>
+                        <td>${monthDay} (周${weekday})</td>
+                        <td>${time}</td>
+                        <td>${busyTimes[slot].count} 人</td>
+                        <td><span class="occupied-badge">不可用</span></td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+        }
+
+        // 显示提交列表
+        function displaySubmissions(data) {
+            const container = document.getElementById('submissionsList');
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">暂无提交数据</p>';
+                return;
+            }
+            
+            let html = '';
+            data.forEach(submission => {
+                const submitTime = new Date(submission.created_at).toLocaleString('zh-CN');
+                
+                html += `
+                    <div class="submission-item">
+                        <div class="submission-header">
+                            ${submission.student_name} (学号: ${submission.student_id})
+                            <span style="float: right; color: #666; font-weight: normal;">
+                                提交时间: ${submitTime}
+                            </span>
+                        </div>
+                        <div>
+                            <strong>忙碌时间段 (${submission.time_slots.length}个):</strong>
+                            <div class="time-chips">
+                                ${submission.time_slots.map(slot => {
+                                    const [date, time] = slot.split('_');
+                                    const dateObj = new Date(date);
+                                    const monthDay = `${dateObj.getMonth() + 1}/${dateObj.getDate()}`;
+                                    return `<span class="time-chip">${monthDay} ${time}</span>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // 清空所有数据
+        async function clearAllData() {
+            if (!confirm('确定要清空所有提交数据吗？此操作不可恢复！')) {
+                return;
+            }
+            
+            try {
+                const { error } = await supabase
+                    .from('survey_responses')
+                    .delete()
+                    .neq('id', 0); // 删除所有记录
+                
+                if (error) throw error;
+                
+                alert('所有数据已清空！');
+                refreshStats();
+                
+            } catch (error) {
+                console.error('清空失败:', error);
+                alert('清空失败：' + error.message);
+            }
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            generateTimeTable();
+            initSupabase();
+        });
+    </script>
+</body>
+</html>
